@@ -1,0 +1,24 @@
+{
+  "id": 1,
+  "uuid": "2d692bb3-1838-2bcd-40cc-2edbdea6be3f",
+  "name": "William Robertson",
+  "email": "vvazquez@gmail.com",
+  "phone": "891-724-8295x384",
+  "address": {
+    "street": "21319 Brooks Square Suite 508",
+    "postalcode": "79169-6576",
+    "city": "South Lauren",
+    "geo": {
+      "latitude": 78.733094,
+      "longitude": 170.155374
+    }
+  },
+  "urls": [
+    "https://www.tate.com/wp-content/register.asp",
+    "http://oneill.net/explore/post.php"
+  ],
+  "organizationId": null,
+  "strActive": "true",
+  "active": true,
+  "registeredAt": "1985-07-16T17:56:18"
+}

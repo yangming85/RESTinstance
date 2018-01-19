@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime, timezone
-from json import dump
+from json import dump, dumps, loads
 from os import path, getcwd
 from urllib.parse import parse_qs, urlparse
 
@@ -8,6 +8,7 @@ from flex.core import validate_api_call
 from genson import Schema
 from jsonschema import Draft4Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
+from pygments import highlight, lexers, formatters
 from requests import request as client
 from requests.exceptions import Timeout
 from requests.packages.urllib3 import disable_warnings
@@ -16,6 +17,31 @@ from robot.api import logger
 from robot.api.deco import keyword
 
 from .schema_keywords import SCHEMA_KEYWORDS
+
+from robot.reporting.jswriter import JsResultWriter
+
+
+# ugly monkeypatch
+_orig_JsResultWriter_write = JsResultWriter.write
+
+def JsResultWriter_write(self, result, settings):
+    _orig_JsResultWriter_write(self, result=result, settings=settings)
+
+    try:
+        with open(path.join(getcwd(), "tests", "diff.js"), 'r') as file:
+            script_content = file.read()
+        with open(path.join(getcwd(), "tests", "template.js"), 'r') as file:
+            template_content = file.read()
+        with open(path.join(getcwd(), "tests", "pygments.css"), 'r') as file:
+            style = file.read()
+    except IOError as e:
+        raise RuntimeError("Error opening JS template".format(e))
+    self._write('<style media="all" type="text/css">{}</style><script>{}</script><script>{}</script>'.format(style, script_content, template_content),
+        postfix='',
+        separator=False
+    )
+
+JsResultWriter.write = JsResultWriter_write
 
 
 class Keywords(object):
@@ -147,6 +173,8 @@ class Keywords(object):
     def missing(self, field):
         try:
             found = self._find_by_field(field, show_found=False)
+            reality = found['reality']
+            self._log_found_and_expected(reality)
         except AssertionError:
             return None
         self.print(found['reality'],
@@ -158,6 +186,7 @@ class Keywords(object):
     def null(self, field, **validations):
         found = self._find_by_field(field)
         reality = found['reality']
+        self._log_found_and_expected(reality, None)
         schema = { "type": "null" }
         skip = self._input_boolean(validations.pop('skip', False))
         if not skip:
@@ -169,6 +198,7 @@ class Keywords(object):
         found = self._find_by_field(field)
         keys = found['keys']
         reality = found['reality']
+        self._log_found_and_expected(reality, value)
         schema = { "type": "boolean" }
         if value is not None:
             schema['enum'] = [self._input_boolean(value)]
@@ -183,6 +213,7 @@ class Keywords(object):
         keys = found['keys']
         schema = found['schema']
         reality = found['reality']
+        self._log_found_and_expected(reality, enum)
         skip = self._input_boolean(validations.pop('skip', False))
         self._set_type_validations("integer", schema, validations)
         if enum:
@@ -198,6 +229,7 @@ class Keywords(object):
         keys = found['keys']
         schema = found['schema']
         reality = found['reality']
+        self._log_found_and_expected(reality, enum)
         skip = self._input_boolean(validations.pop('skip', False))
         self._set_type_validations("number", schema, validations)
         if enum:
@@ -213,6 +245,7 @@ class Keywords(object):
         keys = found['keys']
         schema = found['schema']
         reality = found['reality']
+        self._log_found_and_expected(reality, enum)
         skip = self._input_boolean(validations.pop('skip', False))
         self._set_type_validations("string", schema, validations)
         if enum:
@@ -228,6 +261,7 @@ class Keywords(object):
         keys = found['keys']
         schema = found['schema']
         reality = found['reality']
+        self._log_found_and_expected(reality, enum)
         skip = self._input_boolean(validations.pop('skip', False))
         self._set_type_validations("object", schema, validations)
         if enum:
@@ -243,6 +277,7 @@ class Keywords(object):
         keys = found['keys']
         schema = found['schema']
         reality = found['reality']
+        self._log_found_and_expected(reality, enum)
         skip = self._input_boolean(validations.pop('skip', False))
         self._set_type_validations("array", schema, validations)
         if enum:
@@ -298,6 +333,19 @@ class Keywords(object):
             raise RuntimeError("Error exporting instances " +
                 "to file '{}':\n{}".format(file_path, e))
         return instances
+
+    def _log_found_and_expected(self, found, *expected):
+        expected = expected[0]
+        found = dumps(found, ensure_ascii=False, indent=4)
+        logger.info("<div class='diff'><code class='found'>{}</code><code class='expected'>{}</code></div>".format(
+            found, dumps(loads(expected[0]), ensure_ascii=False, indent=4)),
+            html=True)
+        #json_data = highlight(found,
+        #                      lexers.JsonLexer(),
+        #                      formatters.HtmlFormatter(cssfile="pygments.css"))
+        #logger.info(json_data, html=True)
+        #for value in expected:
+        #    logger.info(value, html=True)
 
     def _request(self, **fields):
         request = deepcopy(self.request)
