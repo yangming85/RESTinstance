@@ -99,8 +99,14 @@ class REST(Keywords):
         self.schema = {
             "exampled": True,
             "version": "draft04",
-            "request": {},
-            "response": {}
+            "request": {
+                "type": "object",
+                "properties": {}
+            },
+            "response": {
+                "type": "object",
+                "properties": {}
+            }
         }
         self.schema.update(self._input_object(schema))
         self.spec = {}

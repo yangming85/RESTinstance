@@ -1,49 +1,55 @@
 {
     "exampled": true,
     "request": {
-        "body": {
-            "properties": {
-                "id": {
-                    "enum": [
-                        11
-                    ],
-                    "type": "integer"
+        "properties": {
+            "body": {
+                "properties": {
+                    "id": {
+                        "enum": [
+                            11
+                        ],
+                        "type": "integer"
+                    },
+                    "name": {
+                        "enum": [
+                            "Gil Alexander"
+                        ],
+                        "type": "string"
+                    }
                 },
-                "name": {
-                    "enum": [
-                        "Gil Alexander"
-                    ],
-                    "type": "string"
-                }
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "type": "object"
             },
-            "required": [
-                "id",
-                "name"
-            ],
-            "type": "object"
+            "query": {
+                "type": "object"
+            }
         },
-        "query": {
-            "type": "object"
-        }
+        "type": "object"
     },
     "response": {
-        "body": {
-            "properties": {
-                "id": {
-                    "example": 11,
-                    "type": "integer"
+        "properties": {
+            "body": {
+                "properties": {
+                    "id": {
+                        "example": 11,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "example": "Gil Alexander",
+                        "type": "string"
+                    }
                 },
-                "name": {
-                    "example": "Gil Alexander",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "id",
-                "name"
-            ],
-            "type": "object"
-        }
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "type": "object"
+            }
+        },
+        "type": "object"
     },
     "version": "draft04"
 }

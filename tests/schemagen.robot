@@ -7,15 +7,18 @@ Test setup      Reset state
 Responding JSON object
     GET         /users/1
     String      response body email     format=email
-    Output      schema response body    ${CURDIR}/schemagen/body_object.json
-    ...                                 sort_keys=true
+    Output      schema response properties body
+    ...         ${CURDIR}/schemagen/body_object.json    sort_keys=true
 
 Responding JSON array
     GET         /users
     String      response body 0 name    Leanne Graham   minLength=3
     String      response body 0 name    Ervin Howell    Leanne Graham
-    Output      schema response body    ${CURDIR}/schemagen/body_array.json
-    ...                                 sort_keys=true
+    Integer     response body 0 id      1               minimum=1
+    Integer     response body 0 id      1               maximum=1
+    Integer     response body 1 id      2               minimum=2
+    Output      schema response properties body
+    ...         ${CURDIR}/schemagen/body_array.json     sort_keys=true
 
 Method with query parameters
     GET         /users?_limit=10
@@ -23,8 +26,8 @@ Method with query parameters
     Array       request query _limit    [ "10" ]
     String      response body 0 name    Leanne Graham   minLength=3
     String      response body 1 name    "Ervin Howell"  pattern="[A-Za-z]+"
-    Output      schema                  ${CURDIR}/schemagen/request_query.json
-    ...                                 sort_keys=true
+    Output      schema
+    ...         ${CURDIR}/schemagen/request_query.json  sort_keys=true
 
 Method with body parameters
     POST        /users                  { "id": 11, "name": "Gil Alexander" }

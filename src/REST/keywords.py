@@ -432,12 +432,19 @@ class Keywords(object):
         schema = deepcopy(self.schema)
         if validate_schema:
             if schema['request']:
-                self._validate_schema(schema['request'], request)
+                self._assert_schema(schema['request'], request)
             if schema['response']:
-                self._validate_schema(schema['response'], response)
-        schema['request']['body'] = self._new_schema(request['body'])
-        schema['request']['query'] = self._new_schema(request['query'])
-        schema['response']['body'] = self._new_schema(response['body'])
+                self._assert_schema(schema['response'], response)
+        if 'properties' not in schema['request']:
+            schema['request']['properties'] = {}
+        schema['request']['properties']['body'] = self._new_schema(
+            request['body'])
+        schema['request']['properties']['query'] = self._new_schema(
+            request['query'])
+        if 'properties' not in schema['response']:
+            schema['response']['properties'] = {}
+        schema['response']['properties']['body'] = self._new_schema(
+            response['body'])
         if 'exampled' in schema and schema['exampled']:
             self._generate_schema_examples(schema, response)
         return {
@@ -453,10 +460,6 @@ class Keywords(object):
             validate_api_call(spec, raw_request=request, raw_response=response)
         except ValueError as e:
             raise AssertionError(e)
-
-    def _validate_schema(self, schema, json_dict):
-        for field in schema:
-            self._assert_schema(schema[field], json_dict[field])
 
     def _assert_schema(self, schema, reality):
         try:
@@ -478,7 +481,7 @@ class Keywords(object):
 
     def _generate_schema_examples(self, schema, response):
         body = response['body']
-        schema = schema['response']['body']
+        schema = schema['response']['properties']['body']
         if isinstance(body, (dict)):
             for field in body:
                 schema['properties'][field]['example'] = body[field]
